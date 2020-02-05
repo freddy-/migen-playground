@@ -7,6 +7,8 @@ _io = [
     ("green_led", 0, Pins("P82"), IOStandard("LVCMOS33"), Drive(24), Misc("SLEW=QUIETIO")),
     ("orange_led", 0, Pins("P81"), IOStandard("LVCMOS33"), Drive(24), Misc("SLEW=QUIETIO")),
 
+    ("buttons", 0, Pins("P97 P99 P101 P104"), IOStandard("LVCMOS33")),
+
     ("clk29", 0, Pins("P55"), IOStandard("LVCMOS33")),
 
     ("serial", 0,
