@@ -23,7 +23,15 @@ _io = [
         Subsignal("miso", Pins("P65"), Misc("PULLUP")),
         IOStandard("LVCMOS33"), Misc("SLEW=FAST")
     ),
+
+    ("seven_seg", 0,
+        Subsignal("digits", Pins("P118 P117 P115 P112"), IOStandard("LVCMOS33"), Misc("SLEW=SLOW")),
+        Subsignal("segments", Pins("P88 P114 P116 P111 P105 P102 P100 P98"), IOStandard("LVCMOS33"), Misc("SLEW=SLOW"))
+    )
 ]
+
+
+
 
 _connectors = []
 
