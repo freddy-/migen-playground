@@ -11,7 +11,7 @@ _io = [
 
     ("clk29", 0, Pins("P55"), IOStandard("LVCMOS33")),
 
-    ("serial", 0,
+    ("uart", 0,
         Subsignal("tx", Pins("P93"), IOStandard("LVCMOS33"), Misc("SLEW=SLOW")),
         Subsignal("rx", Pins("P87"), IOStandard("LVCMOS33"), Misc("PULLUP"))
     ),
@@ -41,6 +41,7 @@ class Platform(XilinxPlatform):
     # 29.498MHZ
     default_clk_name = "clk29"
     default_clk_period = 29.498
+    clkFreq = default_clk_period * 1000000
 
     def __init__(self):
         XilinxPlatform.__init__(self, "xc6slx9-tqg144-2", _io, _connectors)

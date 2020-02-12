@@ -116,6 +116,89 @@ class UartTX(Module):
         )
 
 
+class UartLed(Module):
+    def __init__(self, sysClkFreq):
+        self.i_signal = Signal(reset=1)
+        self.o_led = Signal()
+
+        #  #  #
+
+        self.submodules.clkDiv = clkDiv = ClkDiv(sysClkFreq, targetFreq=100)
+
+        self.sync += [
+            If(~self.i_signal,
+                self.o_led.eq(1),
+                clkDiv.i_enable.eq(1)
+            ),
+
+            If(clkDiv.o_clk,
+                self.o_led.eq(0),
+                clkDiv.i_enable.eq(0)    
+            )
+        ]
+
+
+class Main(Module):
+    def __init__(self, platform):
+        sysClkFreq = platform.clkFreq
+
+        uart = platform.request("uart")
+        self.o_tx = uart.tx
+        self.i_rx = uart.rx
+
+        self.o_txLed = platform.request("green_led")
+        self.o_rxLed = platform.request("orange_led")
+
+        #  #  #
+
+        self.submodules.uartTx = uartTx = UartTX(sysClkFreq)
+        self.submodules.uartRx = uartRx = UartRX(sysClkFreq)
+
+        self.submodules.txLed = txLed = UartLed(sysClkFreq)
+        self.submodules.rxLed = rxLed = UartLed(sysClkFreq)
+
+        self.submodules.oneSecTimer = oneSecTimer = ClkDiv(sysClkFreq, targetFreq=1)
+
+        self.comb += [
+            self.o_tx.eq(uartTx.o_tx),
+            uartRx.i_rx.eq(self.i_rx),
+
+            self.o_txLed.eq(txLed.o_led),
+            self.o_rxLed.eq(rxLed.o_led),
+
+            txLed.i_signal.eq(uartTx.o_tx),
+            rxLed.i_signal.eq(self.i_rx)
+        ]
+
+        buffer = Signal(8)
+
+        self.submodules.rx_fsm = FSM(reset_state="IDLE")
+        self.rx_fsm.act("IDLE",
+            If(uartRx.o_stb,
+                NextValue(oneSecTimer.i_enable, 1),
+                NextValue(buffer, uartRx.o_data),
+                NextState("WAIT")
+            )
+        )
+        self.rx_fsm.act("WAIT",
+            If(oneSecTimer.o_clk,
+                NextValue(oneSecTimer.i_enable, 0),
+                NextValue(uartTx.i_data, buffer),
+                NextValue(uartTx.i_wr, 1),
+                NextState("START_SEND")
+            )
+        )
+        self.rx_fsm.act("START_SEND",
+            NextValue(uartTx.i_wr, 0),
+            NextState("SENDING")
+        )
+        self.rx_fsm.act("SENDING",
+            If(~uartTx.o_busy,
+                NextState("IDLE")
+            )
+        )
+
+
 def rxGenerator(dut):
     yield from delay(10)
     yield dut.i_rx.eq(0)
@@ -131,6 +214,14 @@ def txGenerator(dut):
     yield dut.i_wr.eq(0)
     yield from delay(100)
 
+def uartLedGenerator(dut):
+    yield dut.i_signal.eq(1)
+    yield from delay(5)
+    yield dut.i_signal.eq(0)
+    yield
+    yield dut.i_signal.eq(1)
+    yield from delay(100)
+
 
 if __name__ == "__main__":
     import sys
@@ -142,3 +233,13 @@ if __name__ == "__main__":
     if sys.argv[1] == "sim-tx":
         dut = UartTX(sysClkFreq=BAUD_RATE * 4)
         run_simulation(dut, txGenerator(dut), vcd_name="test.vcd")
+
+    if sys.argv[1] == "sim-led":
+        dut = UartLed(sysClkFreq=1)
+        run_simulation(dut, uartLedGenerator(dut), vcd_name="test.vcd")
+
+    else:
+        platform = Platform()
+        platform.build(Main(platform))
+        platform.create_programmer().load_bitstream("build/top.bit")
+
