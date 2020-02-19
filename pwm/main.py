@@ -1,56 +1,8 @@
-# quantos bits vamos poder configurar: 8
-# qual a frequencia do PWM: 10khz
-
-
-# se habilitado
-#   incrementa contador
-
-# se contador < valor de input
-#   saida = 1
-# elese
-#   saida = 0
-
 from migen import *
-from shared.clkdiv import ClkDiv
 from shared.board.fpga_dev_board import Platform
 from shared.utils import delay
-
-
-class PWM(Module):
-    def __init__(self, sysClkFreq):
-        self.i_duty = Signal(8)
-        self.i_enable = Signal()
-        self.o_pwm = Signal()
-
-        #  #  #
-
-        counter = Signal(8)
-
-        self.submodules.clkDiv = clkDiv = ClkDiv(sysClkFreq, targetFreq=2560000)
-
-        self.sync += [
-            If(self.i_enable,
-                clkDiv.i_enable.eq(1),
-                If(clkDiv.o_clk,
-                    counter.eq(counter + 1)
-                )                
-            ).Else(
-                clkDiv.i_enable.eq(0),
-                counter.eq(0)
-            )
-        ]
-
-        self.comb += [
-            If(self.i_enable,
-                If(counter < self.i_duty,
-                    self.o_pwm.eq(1)
-                ).Else(
-                    self.o_pwm.eq(0)
-                )
-            ).Else(
-                self.o_pwm.eq(0)
-            )
-        ]
+from shared.clkdiv import ClkDiv
+from shared.pwm import PWM
 
 
 class Main(Module):

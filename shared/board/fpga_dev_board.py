@@ -9,6 +9,11 @@ _io = [
 
     ("buttons", 0, Pins("P97 P99 P101 P104"), IOStandard("LVCMOS33")),
 
+    ("encoder", 0,
+        Subsignal("a", Pins("P134"), IOStandard("LVCMOS33"), Misc("SLEW=SLOW")),
+        Subsignal("b", Pins("P133"), IOStandard("LVCMOS33"), Misc("SLEW=SLOW"))
+    ),
+
     ("clk29", 0, Pins("P55"), IOStandard("LVCMOS33")),
 
     ("uart", 0,
