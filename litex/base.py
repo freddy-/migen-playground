@@ -1,6 +1,7 @@
 from migen import *
 from shared.board.fpga_dev_board import Platform
 from shared.seven_segment import SevenSegmentDisplay as _SevenSegmentDisplay
+from shared.rotary_encoder import RotaryEncoder as _RotaryEncoder
 
 from litex.build.generic_platform import *
 
@@ -15,7 +16,7 @@ from litex.soc.interconnect.csr import *
 # Create our soc (fpga description)
 class BaseSoC(SoCMini):
     def __init__(self, platform, **kwargs):
-        sys_clk_freq = int(29.498e6)
+        sys_clk_freq = platform.clkFreq
 
         # SoCMini (No CPU, we are controlling the SoC over UART)
         SoCMini.__init__(self, platform, sys_clk_freq, csr_data_width=32,
@@ -40,26 +41,23 @@ class BaseSoC(SoCMini):
         self.add_csr("led")
 
         # Display 7 Segments
-        display = platform.request("seven_seg")
-        self.submodules.display7Seg = SevenSegmentDisplay(sys_clk_freq)
+        self.submodules.display7Seg = SevenSegmentDisplay(sys_clk_freq, platform.request("seven_seg"))
         self.add_csr("display7Seg")
-        self.comb += [
-            display.digits.eq(~self.display7Seg.o_digits),
-            display.segments.eq(~self.display7Seg.o_segments)
-        ]
+
+        # Encoder
+        self.submodules.encoder = RotaryEncoder(sys_clk_freq, platform.request("encoder"))
+        self.add_csr("encoder")
 
 
 class SevenSegmentDisplay(Module, AutoCSR):
-    def __init__(self, sys_clk_freq):
+    def __init__(self, sys_clk_freq, displayPins):
         self.value = CSRStorage(16)
 
-        self.o_digits = Signal(4)
-        self.o_segments = Signal(8)
-
         self.submodules.display = _SevenSegmentDisplay(sys_clk_freq)
+
         self.comb += [
-            self.o_digits.eq(self.display.o_digits),
-            self.o_segments.eq(self.display.o_segments),
+            displayPins.digits.eq(~self.display.o_digits),
+            displayPins.segments.eq(~self.display.o_segments)
         ]
 
         self.sync += [
@@ -67,6 +65,20 @@ class SevenSegmentDisplay(Module, AutoCSR):
                 self.display.i_value.eq(self.value.storage)
             )
         ]
+
+
+class RotaryEncoder(Module, AutoCSR):
+    def __init__(self, sys_clk_freq, pins):
+        self.value = CSRStatus(8)
+
+        self.submodules.encoder = _RotaryEncoder(sys_clk_freq)
+
+        self.comb += [
+            self.encoder.i_a.eq(pins.a),
+            self.encoder.i_b.eq(pins.b)
+        ]
+
+        self.sync += self.value.status.eq(self.encoder.o_counter)
 
 
 platform = Platform()
