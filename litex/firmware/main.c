@@ -138,6 +138,8 @@ int main(void)
 	irq_setie(1);
 	uart_init();
 
+	encoder_test();
+
 	puts("\nLab004 - CPU testing software built "__DATE__" "__TIME__"\n");
 	help();
 	prompt();

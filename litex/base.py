@@ -60,6 +60,7 @@ class CpuSoC(SoCMini):
             clk_freq                 = sys_clk_freq,
             ident                    = "LiteX CPU Test SoC", ident_version=True,
             integrated_rom_size      = 0x4000,
+            integrated_rom_init      = get_mem_data("/home/freddy/projetos/migen-playground/litex/firmware/firmware.bin", "little"),
             integrated_main_ram_size = 0x2000,
             uart_name                = "uart")
 
