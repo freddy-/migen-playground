@@ -6,20 +6,13 @@
 #include <uart.h>
 #include <console.h>
 #include <generated/csr.h>
+#include "utils.h"
+#include "st7565.h"
+
+// litex_server --uart --uart-port=/dev/ttyUSB1
 
 // lxterm /dev/ttyUSB1 --kernel firmware.bin
 // reboot
-
-static void busy_wait(unsigned int ds)
-{
-	timer0_en_write(0);
-	timer0_reload_write(0);
-	timer0_load_write(CONFIG_CLOCK_FREQUENCY/10*ds);
-	timer0_en_write(1);
-	timer0_update_value_write(1);
-	while(timer0_value_read()) timer0_update_value_write(1);
-}
-
 
 static char *readstr(void)
 {
@@ -132,13 +125,15 @@ static void console_service(void)
 	prompt();
 }
 
+
 int main(void)
 {
 	irq_setmask(0);
 	irq_setie(1);
 	uart_init();
 
-	encoder_test();
+	st7565_init();
+	st7565_draw_pattern();
 
 	puts("\nLab004 - CPU testing software built "__DATE__" "__TIME__"\n");
 	help();

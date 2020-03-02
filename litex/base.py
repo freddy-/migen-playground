@@ -2,6 +2,7 @@ from migen import *
 from shared.board.fpga_dev_board import Platform
 from rotary_encoder import RotaryEncoder
 from seven_segment import SevenSegmentDisplay
+from st7565 import St7565Display
 
 from litex.build.generic_platform import *
 
@@ -60,7 +61,7 @@ class CpuSoC(SoCMini):
             clk_freq                 = sys_clk_freq,
             ident                    = "LiteX CPU Test SoC", ident_version=True,
             integrated_rom_size      = 0x4000,
-            integrated_rom_init      = get_mem_data("/home/freddy/projetos/migen-playground/litex/firmware/firmware.bin", "little"),
+            #integrated_rom_init      = get_mem_data("/home/freddy/projetos/migen-playground/litex/firmware/firmware.bin", "little"),
             integrated_main_ram_size = 0x2000,
             uart_name                = "uart")
 
@@ -86,10 +87,15 @@ class CpuSoC(SoCMini):
         self.submodules.encoder = RotaryEncoder(sys_clk_freq, platform.request("encoder"))
         self.add_csr("encoder")
 
+        # ST7565 Display
+        # TODO usar o modulo spi.py do LiteX para controlar o display pela CPU
+        self.submodules.display = St7565Display(sys_clk_freq, platform.request("spi_display"))
+        self.add_csr("display")
+
 
 platform = Platform()
 soc = CpuSoC(platform)
-builder = Builder(soc, output_dir="build", csr_csv="test/csr.csv")
-builder.gateware_toolchain_path=None
-builder.build()
+#builder = Builder(soc, output_dir="build", csr_csv="test/csr.csv")
+#builder.gateware_toolchain_path=None
+#builder.build()
 platform.create_programmer().load_bitstream("build/gateware/top.bit")

@@ -32,7 +32,18 @@ _io = [
     ("seven_seg", 0,
         Subsignal("digits", Pins("P118 P117 P115 P112"), IOStandard("LVCMOS33"), Misc("SLEW=SLOW")),
         Subsignal("segments", Pins("P88 P114 P116 P111 P105 P102 P100 P98"), IOStandard("LVCMOS33"), Misc("SLEW=SLOW"))
-    )
+    ),
+
+    ("spi_display", 0,
+        Subsignal("bl_led", Pins("P120")),
+        Subsignal("blue_led", Pins("P119")),
+        Subsignal("reset", Pins("P126")),
+        Subsignal("dc", Pins("P124")),
+        Subsignal("cs_n", Pins("P131")),
+        Subsignal("clk", Pins("P123")),
+        Subsignal("mosi", Pins("P121")),
+        IOStandard("LVCMOS33"), Misc("SLEW=FAST")
+    ),
 ]
 
 
