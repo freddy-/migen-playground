@@ -6,7 +6,6 @@ from litex.soc.cores.gpio import GPIOOut
 class St7565Display(Module, AutoCSR):
     def __init__(self, sys_clk_freq, pins):
         self.submodules.dc        = GPIOOut(pins.dc)
-        self.submodules.blue_led  = GPIOOut(pins.blue_led)
         self.submodules.backligth = GPIOOut(pins.bl_led)
         self.submodules.reset     = GPIOOut(pins.reset)
 

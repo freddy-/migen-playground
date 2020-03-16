@@ -3,6 +3,7 @@ from shared.board.fpga_dev_board import Platform
 from rotary_encoder import RotaryEncoder
 from seven_segment import SevenSegmentDisplay
 from st7565 import St7565Display
+from pwm import PWM
 
 from litex.build.generic_platform import *
 
@@ -14,6 +15,7 @@ from litex.soc.cores.spi import SPIMaster
 from litex.soc.cores.gpio import GPIOOut
 from litex.soc.interconnect.csr import *
 
+import litex.soc.doc as lxsocdoc
 
 # Create our soc (fpga description)
 class UartBaseSoC(SoCMini):
@@ -89,13 +91,26 @@ class CpuSoC(SoCMini):
 
         # ST7565 Display
         # TODO usar o modulo spi.py do LiteX para controlar o display pela CPU
-        self.submodules.display = St7565Display(sys_clk_freq, platform.request("spi_display"))
+        displayPins = platform.request("spi_display")
+        self.submodules.display = St7565Display(sys_clk_freq, displayPins)
         self.add_csr("display")
+
+        # PWM
+        self.submodules.pwm = PWM(sys_clk_freq, displayPins.blue_led)
+        self.add_csr("pwm")
 
 
 platform = Platform()
 soc = CpuSoC(platform)
-#builder = Builder(soc, output_dir="build", csr_csv="test/csr.csv")
-#builder.gateware_toolchain_path=None
+soc.do_finalize()
+builder = Builder(soc, output_dir="build", csr_csv="test/csr.csv")
+builder.gateware_toolchain_path=None
 #builder.build()
-platform.create_programmer().load_bitstream("build/gateware/top.bit")
+#platform.create_programmer().load_bitstream("build/gateware/top.bit")
+
+
+lxsocdoc.generate_docs(
+    soc,
+    builder.output_dir + "/documentation",
+    project_name="DIY FPGA Dev Board", 
+    author="Freddy")
