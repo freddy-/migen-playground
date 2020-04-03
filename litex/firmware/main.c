@@ -163,7 +163,6 @@ static void game_of_life(void) {
 	uint32_t generationCounter = 0;
 	while(1) {
 		printf("Generation: %d\n", generationCounter++);
-		memset(ptr_new_generation, 0, SCREEN_WIDTH * SCREEN_HEIGHT / 8);
 
 		for (uint8_t y = 1; y <= SCREEN_HEIGHT; y++) {
 			for (uint8_t x = 1; x <= SCREEN_WIDTH; x++) {
@@ -181,9 +180,19 @@ static void game_of_life(void) {
 
 						//printf("neighbourX: %d  neighbourY: %d\n", neighbourX, neighbourY);
 
-						// TODO tentar impementar um mundo toroidal, ao chegar numa extremidade, continua na outra...
+						if (neighbourX < 1) {
+							neighbourX = SCREEN_WIDTH;
+						} else if (neighbourX > SCREEN_WIDTH) {
+							neighbourX = 1;
+						}
 
-						if (neighbourX >= 1 && neighbourX <= SCREEN_WIDTH && neighbourY >= 1 && neighbourY <= SCREEN_HEIGHT && !(neighbourX == x && neighbourY == y)) {
+						if (neighbourY < 1) {
+							neighbourY = SCREEN_HEIGHT;
+						} else if (neighbourY > SCREEN_HEIGHT) {
+							neighbourY = 1;
+						}
+						
+						if (!(neighbourX == x && neighbourY == y)) {
 							uint8_t neighbourValue = glcd_get_pixel(neighbourX, neighbourY);
 							//printf("neighbourValue: %d\n", neighbourValue);
 							aliveNeighbours += neighbourValue;
@@ -219,7 +228,7 @@ static void game_of_life(void) {
 
 		glcd_refresh();
 
-		busy_wait(250);
+		//busy_wait(250);
 	}
 }
 

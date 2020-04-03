@@ -23,7 +23,7 @@ uint8_t glcd_get_pixel(uint8_t x, uint8_t y) {
   y -= 1;
 
   unsigned short array_pos = x + ((y / 8) * 128);
-  return ((glcd_buffer[array_pos] >> (y % 8))  & 0x01);
+  return ((glcd_buffer[array_pos] >> (y % 8)) & 0x01);
 }
 
 void glcd_pixel(unsigned char x, unsigned char y, unsigned char colour) {
