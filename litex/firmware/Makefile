@@ -1,9 +1,12 @@
 BUILD_DIR=../build/
 
+# set verbosity
+V=0
+
 include $(BUILD_DIR)/software/include/generated/variables.mak
 include $(SOC_DIRECTORY)/software/common.mak
 
-OBJECTS=isr.o main.o
+OBJECTS=st7565.o isr.o main.o 
 
 all: firmware.bin
 

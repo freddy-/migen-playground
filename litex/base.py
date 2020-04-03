@@ -96,21 +96,21 @@ class CpuSoC(SoCMini):
         self.add_csr("display")
 
         # PWM
-        self.submodules.pwm = PWM(sys_clk_freq, displayPins.blue_led)
-        self.add_csr("pwm")
+        #self.submodules.pwm = PWM(sys_clk_freq, displayPins.blue_led)
+        #self.add_csr("pwm")
 
 
 platform = Platform()
 soc = CpuSoC(platform)
-soc.do_finalize()
+#soc.do_finalize()
 builder = Builder(soc, output_dir="build", csr_csv="test/csr.csv")
 builder.gateware_toolchain_path=None
 #builder.build()
-#platform.create_programmer().load_bitstream("build/gateware/top.bit")
+platform.create_programmer().load_bitstream("build/gateware/top.bit")
 
 
-lxsocdoc.generate_docs(
-    soc,
-    builder.output_dir + "/documentation",
-    project_name="DIY FPGA Dev Board", 
-    author="Freddy")
+#lxsocdoc.generate_docs(
+#    soc,
+#    builder.output_dir + "/documentation",
+#    project_name="DIY FPGA Dev Board", 
+#    author="Freddy")
