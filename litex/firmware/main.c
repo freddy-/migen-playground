@@ -157,12 +157,12 @@ static void game_of_life(void) {
 	glcd_pixel(61, 30, 1);
 	glcd_pixel(61, 31, 1);
 	glcd_pixel(61, 29, 1);
-	glcd_pixel(62, 29, 1);
+	glcd_pixel(62, 29, 1);	
 
 	glcd_refresh();
 	uint32_t generationCounter = 0;
 	while(1) {
-		printf("Generation: %d\n", generationCounter++);
+    display7Seg_value_write(generationCounter++);
 
 		for (uint8_t y = 1; y <= SCREEN_HEIGHT; y++) {
 			for (uint8_t x = 1; x <= SCREEN_WIDTH; x++) {

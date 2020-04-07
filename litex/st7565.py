@@ -15,6 +15,6 @@ class St7565Display(Module, AutoCSR):
             pads         = pins,
             data_width   = 8,
             sys_clk_freq = sys_clk_freq,
-            spi_clk_freq = 2e6,
+            spi_clk_freq = 4e6,
         )
 
