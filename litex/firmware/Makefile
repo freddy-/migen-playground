@@ -8,7 +8,7 @@ include $(SOC_DIRECTORY)/software/common.mak
 
 OBJECTS=st7565.o isr.o main.o 
 
-all: firmware.bin
+all: firmware.fbi
 
 # pull in dependency info for *existing* .o files
 -include $(OBJECTS:.o=.d)
@@ -28,6 +28,10 @@ firmware.elf: $(OBJECTS)
 		-lbase-nofloat -lcompiler_rt
 	chmod -x $@
 
+firmware.fbi: firmware.bin
+	python3 -m litex.soc.software.mkmscimg -o $@ -l -f $<
+	chmod -x $@
+
 main.o: main.c
 	$(compile)
 
@@ -38,6 +42,6 @@ main.o: main.c
 	$(assemble)
 
 clean:
-	$(RM) $(OBJECTS) $(OBJECTS:.o=.d) firmware.elf firmware.bin .*~ *~
+	$(RM) $(OBJECTS) $(OBJECTS:.o=.d) firmware.elf firmware.bin firmware.fbi .*~ *~
 
 .PHONY: all main.o clean load

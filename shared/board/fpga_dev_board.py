@@ -44,6 +44,15 @@ _io = [
         Subsignal("mosi", Pins("P121")),
         IOStandard("LVCMOS33"), Misc("SLEW=FAST")
     ),
+    
+    ("spiflash", 0,
+        Subsignal("cs_n", Pins("P38")),
+        Subsignal("clk",  Pins("P70")),
+        Subsignal("mosi", Pins("P64")),
+        Subsignal("miso", Pins("P65")),
+        IOStandard("LVCMOS33"),
+    ),
+
 ]
 
 

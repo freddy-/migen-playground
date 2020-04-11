@@ -11,13 +11,17 @@ from litex.build.generic_platform import *
 
 from litex.soc.integration.soc_core import *
 from litex.soc.integration.builder import *
+from litex.soc.interconnect.csr import *
 from litex.soc.cores.uart import UARTWishboneBridge
 from litex.soc.cores import dna, xadc
 from litex.soc.cores.spi import SPIMaster
 from litex.soc.cores.gpio import GPIOOut
-from litex.soc.interconnect.csr import *
+from litex.soc.cores.spi_flash import SpiFlash
 
 import litex.soc.doc as lxsocdoc
+
+kB = 1024
+mB = 1024*kB
 
 class _CRG(Module):
     def __init__(self, platform, sys_clk_freq):
@@ -130,7 +134,19 @@ class UartBaseSoC(SoCMini):
 
 class CpuSoC(SoCMini):
     def __init__(self, platform, **kwargs):
-        sys_clk_freq = 100.295 * 1000000
+
+        # TODO Fix the spi flash write speed in bitbang mode
+        #sys_clk_freq = 100.295 * 1000000
+
+        sys_clk_freq = 29.498 * 1000000
+
+        SoCCore.mem_map       = {
+            "rom":      0x00000000,
+            "sram":     0x01000000,
+            "main_ram": 0x40000000,
+            "spiflash": 0x60000000,
+            "csr":      0x82000000,
+        }
 
         # SoC with CPU
         SoCCore.__init__(self, platform,
@@ -138,17 +154,26 @@ class CpuSoC(SoCMini):
             clk_freq                 = sys_clk_freq,
             ident                    = "LiteX CPU Test SoC", ident_version=True,
             integrated_rom_size      = 0x4000,
-            #integrated_rom_init      = get_mem_data("/home/freddy/projetos/migen-playground/litex/firmware/firmware.bin", "little"),
             integrated_main_ram_size = 0x2000,
             uart_name                = "uart")
 
         # Clock Reset Generation
-        self.submodules.crg = _CRG(platform, sys_clk_freq)
-        self.platform.add_period_constraint(self.crg.cd_sys.clk, 1e9/sys_clk_freq)
+        self.submodules.crg = CRG(platform.request("clk29"), ~platform.request("buttons")[3])
+
+        #self.submodules.crg = _CRG(platform, sys_clk_freq)
+        #self.platform.add_period_constraint(self.crg.cd_sys.clk, 1e9/sys_clk_freq)
 
         # FPGA identification
         self.submodules.dna = dna.DNA()
         self.add_csr("dna")
+
+        # SPI Flash
+        self.submodules.spiflash = SpiFlash(platform.request("spiflash"), dummy=8, div=4, endianness="little")
+        self.register_mem("spiflash", self.mem_map["spiflash"], self.spiflash.bus, size=2*mB)
+        self.add_csr("spiflash")
+        self.add_constant("SPIFLASH_PAGE_SIZE", 256)
+        self.add_constant("SPIFLASH_SECTOR_SIZE", 4096)
+        self.add_constant("FLASH_BOOT_ADDRESS", self.mem_map['spiflash'] + 0x100000)
 
         # Led
         self.submodules.led = GPIOOut(Cat([
@@ -181,7 +206,7 @@ soc = CpuSoC(platform)
 #soc.do_finalize()
 builder = Builder(soc, output_dir="build", csr_csv="test/csr.csv")
 builder.gateware_toolchain_path=None
-#builder.build()
+builder.build()
 platform.create_programmer().load_bitstream("build/gateware/top.bit")
 
 
